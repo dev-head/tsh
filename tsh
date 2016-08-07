@@ -1,0 +1,101 @@
+#!/bin/sh
+
+#
+# =((TSH))=
+# @todo Add options, blah blah improve
+# @author: Todd Foley
+# @version: 0.0.1
+# 
+# =((X|X))==((X|X))==((X|X))==((X|X))==((X|X))==((X|X))==((X|X))==((X|X))==((X|X))==((X|X))==((X|X))=
+
+
+#
+#
+#
+debug()
+{
+    if [[  $DEBUG == true ]]; then
+        while [ "$1" != "" ]; do
+            echo "[=((TSH))=][DEBUG]::${1}"
+            shift
+        done
+    fi
+}
+
+#
+# Used to autoload .sh files from a provided directory
+#
+autoload()
+{
+
+    while [ "$1" != "" ]; do
+        DIR="$TSH/$1"
+        debug "autoload::[$DIR]"
+        
+        if [[ -d $DIR ]]; then
+                
+            for file in `find $DIR -type f -name "*.sh"`; do
+                debug "autoload::[$file]"
+                source "$file"
+            done
+        else 
+            debug "autoload::[$DIR] is not a real directory, what gives?"
+        fi
+        shift;
+    done;
+}
+
+
+ACTION=$1
+DEBUG=false
+DIR_CONTROLLERS="controller"
+DIR_FUNCTIONS="function"
+DIR_PLUGINS="plugin"
+DIR_ALIAS="alias"
+DIR_VARS="vars"
+APP_NAME="tsh"
+INSTALL_NAME=".tsh"
+INSTALL_PATH=$HOME/$INSTALL_NAME
+DEFAULT_ACTION="run"
+VERSION="0.0.1"
+
+# globalize this important var.
+export TSH=$INSTALL_PATH
+
+# 
+# Autoload all the .sh scripts from the functions dir. 
+#
+autoload \
+    $DIR_FUNCTIONS \
+    $DIR_PLUGINS \
+    $DIR_ALIAS \
+    $DIR_VARS
+
+# run action
+if [[ ! -z $ACTION ]]; then
+
+    case $ACTION in
+        install)
+            log "Commencing install of TSH. Feel free to take a break while i slave away for you"
+            source $TSH/$DIR_CONTROLLERS/$ACTION.sh $INSTALL_PATH
+            log "Well that was easy, back to work"
+        ;;  
+            
+        *)
+            if [[ -f $TSH/$DIR_CONTROLLERS/$ACTION.sh ]]; then
+                source "$TSH/$DIR_CONTROLLERS/$ACTION.sh"
+            else
+                error "Invalid action[$ACTION]"
+            fi
+        ;;
+    esac
+
+fi
+
+# Function to run upon exit of shell.
+function _exit()
+{
+    echo "Hasta la vista, baby"
+}
+trap _exit EXIT
+
